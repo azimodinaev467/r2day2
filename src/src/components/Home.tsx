@@ -1,149 +1,72 @@
-import { useState } from 'react'
-import { useTodo } from '../store/Todo.store'
+import { useEffect, useState } from 'react'
+import { useTodo } from './store/Todo.store'
 
 const Home = () => {
-  const { data, deleteUser, addUser, editUser } = useTodo();
-  const [name, setName] = useState('');
-  const [job, setJob] = useState('');
+  const { data, getData, deleteData, postData, editData } = useTodo();
   const [editId, setEditId] = useState<number | null>(null);
   const [editName, setEditName] = useState('');
-  const [editJob, setEditJob] = useState('');
 
-  const handleAdd = () => {
-    if (!name.trim()) return;
-    addUser({
-      id: Date.now(),
-      name,
-      job
-    });
-    setName('');
-    setJob('');
+  useEffect(() => {
+    getData()
+  }, [])
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const input = form.elements.namedItem('name') as HTMLInputElement;
+    if (input && input.value.trim()) {
+      postData(input.value);
+      form.reset();
+    }
   };
 
-  const handleEdit = (e: { id: number, name: string, job: string }) => {
-    setEditId(e.id);
-    setEditName(e.name);
-    setEditJob(e.job);
+  const handleStartEdit = (id: number, name: string) => {
+    setEditId(id);
+    setEditName(name);
   };
 
-  const handleSave = () => {
-    if (!editName.trim()) return;
-    editUser(editId!, editName, editJob);
+  const handleSaveEdit = (id: number) => {
+    if (editName.trim()) {
+      editData(id, editName);
+      setEditId(null);
+      setEditName('');
+    }
+  };
+
+  const handleCancelEdit = () => {
     setEditId(null);
     setEditName('');
-    setEditJob('');
   };
 
   return (
-    <div>
-      <div style={{ margin: "20px 0", display: "flex", gap: "10px" }}>
-        <input
-          type="text" placeholder="Name" value={name} onChange={(e) => setName(e.target.value)}
-          style={{
-            padding: "8px 12px",
-            borderRadius: "6px",
-            border: "1px solid #cbd5e1",
-            fontSize: "14px"
-          }}
-        />
-        <input type="text" placeholder="Job" value={job} onChange={(e) => setJob(e.target.value)}
-          style={{
-            padding: "8px 12px",
-            borderRadius: "6px",
-            border: "1px solid #cbd5e1",
-            fontSize: "14px"
-          }}
-        />
-        <button
-          onClick={handleAdd}
-          style={{
-            padding: "8px 16px",
-            backgroundColor: "#22c55e",
-            color: "#ffffff",
-            border: "none",
-            borderRadius: "6px",
+    <>
+      <form onSubmit={handleSubmit}>
+        <input type="text" name="name" placeholder="Name" />
+        <button type="submit">add</button>
+      </form>
 
-            fontSize: "14px",
-            fontWeight: 500,
-            transition: "background-color 0.2s"
-          }}
-        >
-          Add
-        </button>
-      </div>
-
-      {
-        data.map((e) => {
-          return (
-            <div key={e.id}>
-              <h1> {e.name}</h1>
-              <p>{e.job}</p>
-
-              {editId === e.id ? (
-                <div style={{ display: "flex", gap: "8px", marginTop: "6px" }}>
-                  <input
-                    type="text" value={editName} onChange={(e) => setEditName(e.target.value)}
-                    style={{ padding: "6px 10px", borderRadius: "6px", border: "1px solid #cbd5e1", fontSize: "14px" }}
-                  />
-                  <input
-                    type="text" value={editJob} onChange={(e) => setEditJob(e.target.value)}
-                    style={{ padding: "6px 10px", borderRadius: "6px", border: "1px solid #cbd5e1", fontSize: "14px" }}
-                  />
-                  <button
-                    onClick={handleSave}
-                    style={{
-                      padding: "6px 14px",
-                      backgroundColor: "#3b82f6",
-                      color: "#ffffff",
-                      border: "none",
-                      borderRadius: "6px",
-                      fontSize: "14px",
-                      fontWeight: 500,
-                      transition: "background-color 0.2s"
-                    }}
-                  >
-                    save
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => handleEdit(e)}
-                  style={{
-                    padding: "6px 14px",
-                    backgroundColor: "#f59e0b",
-                    color: "#ffffff",
-                    border: "none",
-                    borderRadius: "6px",
-                    fontSize: "14px",
-                    fontWeight: 500,
-                    transition: "background-color 0.2s"
-                  }}
-                >
-                  edit
-                </button>
-              )}
-
-              <button
-                onClick={() => deleteUser(e.id)}
-                style={{
-                  padding: "6px 14px",
-                  backgroundColor: "#ef4444",
-                  color: "#ffffff",
-                  border: "none",
-                  borderRadius: "6px",
-
-                  fontSize: "14px",
-                  fontWeight: 500,
-                  transition: "background-color 0.2s"
-                }}
-              >
-                delete
-              </button>
-            </div>
-          )
-        })
-      }
-    </div>
+      {data.map((e) => (
+        <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '8px 0' }}>
+          {editId === e.id ? (
+            <>
+              <input
+                type="text"
+                value={editName}
+                onChange={(ev) => setEditName(ev.target.value)}
+              />
+              <button onClick={() => handleSaveEdit(e.id)}>save</button>
+              <button onClick={handleCancelEdit}>cancel</button>
+            </>
+          ) : (
+            <>
+              <h1 style={{ margin: 0 }}>{e.name}</h1>
+              <button onClick={() => deleteData(e.id)}>delete</button>
+              <button onClick={() => handleStartEdit(e.id, e.name)}>edit</button>
+            </>
+          )}
+        </div>
+      ))}
+    </>
   )
 }
 
