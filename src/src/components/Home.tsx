@@ -10,15 +10,7 @@ const Home = () => {
     getData()
   }, [])
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const form = e.currentTarget;
-    const input = form.elements.namedItem('name') as HTMLInputElement;
-    if (input && input.value.trim()) {
-      postData(input.value);
-      form.reset();
-    }
-  };
+  
 
   const handleStartEdit = (id: number, name: string) => {
     setEditId(id);
